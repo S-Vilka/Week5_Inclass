@@ -43,27 +43,37 @@ pipeline {
                 }
             }
         }
-        stage('Build Docker Image') {
-            steps {
-                // Build Docker image
-                script {
-                    docker.build("${DOCKERHUB_REPO}:${DOCKER_IMAGE_TAG}")
-                }
+        stage('Docker Login') {
+                            steps {
+                                script {
+                                    withCredentials([usernamePassword(credentialsId: DOCKERHUB_CREDENTIALS_ID,
+                                                                     usernameVariable: 'DOCKERHUB_USER',
+                                                                     passwordVariable: 'DOCKERHUB_PASSWORD')]) {
+                                        sh '''
+                                            echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USER" --password-stdin
+                                        '''
+                                    }
+                                }
+                            }
+                        }
+                        stage('Build Docker Image') {
+                             steps {
+                                 script {
+                                     sh """
+                                         docker buildx use mybuilder || docker buildx create --use --name mybuilder
+                                         docker buildx build --platform=linux/amd64 -t ${DOCKERHUB_REPO}:${DOCKER_IMAGE_TAG} --load .
+                                     """
+                                 }
+                             }
+                         }
+
+                        stage('Push Docker Image to Docker Hub') {
+                            steps {
+                                script {
+                                    sh "docker push ${DOCKERHUB_REPO}:${DOCKER_IMAGE_TAG}"
+                                }
+                            }
+                        }
+
             }
         }
-        stage('Push Docker Image to Docker Hub') {
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: DOCKERHUB_CREDENTIALS_ID, usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
-                        // Log in to Docker Hub
-                        sh "echo ${DOCKERHUB_PASSWORD} | docker login -u ${DOCKERHUB_USER} --password-stdin"
-
-                        // Push Docker images to Docker Hub
-                        sh "docker push ${DOCKERHUB_REPO}:${DOCKER_IMAGE_TAG}"
-                    }
-                }
-            }
-        }
-
-    }
-}
