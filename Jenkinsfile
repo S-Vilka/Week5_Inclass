@@ -32,12 +32,12 @@ pipeline {
             steps {
                 withSonarQubeEnv('SonarQubeServer') {
                     sh """
-                        /Users/sergeivilka/sonar-scanner-7.1.0.4889-macosx-aarch64/bin/sonar-scanner \\
-                        -Dsonar.projectKey=devops-demo \\
-                        -Dsonar.sources=src \\
-                        -Dsonar.projectName=DevOps-Demo \\
-                        -Dsonar.host.url=http://localhost:9000 \\
-                        -Dsonar.login=${env.SONAR_TOKEN} \\
+                        /Users/sergeivilka/sonar-scanner-7.1.0.4889-macosx-aarch64/bin/sonar-scanner \
+                        -Dsonar.projectKey=devops-demo \
+                        -Dsonar.sources=src \
+                        -Dsonar.projectName=DevOps-Demo \
+                        -Dsonar.host.url=http://localhost:9000 \
+                        -Dsonar.login=${env.SONAR_TOKEN} \
                         -Dsonar.java.binaries=target/classes
                     """
                 }
